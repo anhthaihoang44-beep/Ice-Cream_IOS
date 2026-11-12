@@ -436,3 +436,4 @@ struct PopsicleView: View {
         showCelebration = false
     }
 }
+

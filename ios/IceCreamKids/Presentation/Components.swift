@@ -138,3 +138,4 @@ struct ConfettiParticle: Identifiable {
     var color: Color
     var opacity: Double
 }
+

@@ -185,3 +185,4 @@ struct GelatoView: View {
         showCelebration = false
     }
 }
+

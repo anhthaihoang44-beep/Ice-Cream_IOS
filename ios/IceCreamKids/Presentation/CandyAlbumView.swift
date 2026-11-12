@@ -156,3 +156,4 @@ struct CandyAlbumView: View {
         }
     }
 }
+

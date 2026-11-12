@@ -37,7 +37,8 @@ struct IceCreamKidsApp: App {
                     CandyAlbumView(appState: appState)
                 }
             }
-            .statusBar(hidden: true)
+            .statusBarHidden(true)
         }
     }
 }
+

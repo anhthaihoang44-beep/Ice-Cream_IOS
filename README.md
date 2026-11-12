@@ -17,3 +17,4 @@ A native SwiftUI cooking game for kids (ages 2-5).
 
 ## Build Instructions
 Built automatically with GitHub Actions (`macos-14` + `swiftc`). Output IPA is signed via Sideloadly / AltStore / TrollStore for iPhone & iPad.
+

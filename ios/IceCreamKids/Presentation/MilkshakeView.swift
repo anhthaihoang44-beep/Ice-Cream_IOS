@@ -483,3 +483,4 @@ struct MilkshakeView: View {
         showCelebration = false
     }
 }
+

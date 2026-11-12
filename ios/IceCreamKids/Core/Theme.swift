@@ -58,3 +58,4 @@ struct GameImage: View {
         return nil
     }
 }
+

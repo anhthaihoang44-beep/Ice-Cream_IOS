@@ -342,3 +342,4 @@ struct SweetIceView: View {
         showCelebration = false
     }
 }
+
