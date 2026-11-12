@@ -192,7 +192,7 @@ struct MilkshakeView: View {
             ZStack {
                 ForEach(0..<addedFruits.count, id: \.self) { index in
                     let size: CGFloat = step == .blend ? 26 : 38
-                    GameImage(name: addedFruits[index].asset)
+                    GameImage(name: addedFruits[index].chunkAsset)
                         .frame(width: size, height: size)
                         .offset(x: fruitOffsetX(for: index), y: fruitOffsetY(for: index))
                 }
