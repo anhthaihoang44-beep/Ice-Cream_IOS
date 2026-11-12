@@ -31,12 +31,18 @@ extension Color {
 struct GameImage: View {
     let name: String
     var contentMode: ContentMode = .fit
+    var tint: Color? = nil
 
     var body: some View {
         if let uiImg = loadImage(named: name) {
-            Image(uiImage: uiImg)
+            let img = Image(uiImage: uiImg)
                 .resizable()
                 .aspectRatio(contentMode: contentMode)
+            if let tint = tint {
+                img.renderingMode(.template).foregroundColor(tint)
+            } else {
+                img
+            }
         } else {
             // Graceful fallback for missing assets
             Rectangle()

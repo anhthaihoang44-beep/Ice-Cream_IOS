@@ -147,46 +147,76 @@ struct MilkshakeView: View {
         }
     }
 
-    // MARK: - Blender Stage
+    // MARK: - Blender Stage (Pixel-Perfect 100% Collar-Locked Native Composite)
     private var blenderStageView: some View {
-        ZStack {
-            // Blender Back
-            GameImage(name: "d_blender_back")
-                .frame(width: 170, height: 210)
+        let s: CGFloat = 195.0 / 540.0 // Native scale = 0.36111
+        let ox: CGFloat = 15.2 // Centers collar and jar on screen
 
-            // Liquid & fruit piles inside pitcher
-            if !addedFruits.isEmpty {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(liquidColor.opacity(hasMilk ? 0.85 : 0.65))
-                    .frame(width: 120, height: hasMilk ? 100 : 70)
-                    .offset(y: 10)
+        return ZStack(alignment: .topLeading) {
+            // 1. Jar Back Glass: centered on collar (200 - 234 = -34)
+            GameImage(name: "d_blender_back")
+                .frame(width: 468 * s, height: 496 * s)
+                .offset(x: ox - 34 * s, y: 42 * s)
+
+            // 2. Liquid inside Jar: official d_blender_liquid asset tinted with fruit/milk color
+            if hasMilk || step == .blend || !addedFruits.isEmpty {
+                GameImage(name: "d_blender_liquid", tint: liquidColor.opacity(hasMilk ? 0.90 : 0.65))
+                    .frame(width: 468 * s, height: 496 * s)
+                    .offset(x: ox - 34 * s, y: 42 * s)
             }
 
-            // Blade
-            GameImage(name: "blender_blade")
-                .frame(width: 44, height: 44)
-                .offset(y: 45)
-                .rotationEffect(.degrees(bladeAngle))
+            // 3. Floating Fruit Pieces (centered on collar, swirling inside pitcher)
+            if !addedFruits.isEmpty {
+                ZStack {
+                    ForEach(Array(addedFruits.enumerated()), id: \.offset) { index, fruit in
+                        let xOff: CGFloat = index == 0 ? -22 : (index == 1 ? 22 : (index == 2 ? -12 : 14))
+                        let yOff: CGFloat = index == 0 ? -14 : (index == 1 ? -6 : (index == 2 ? 14 : 10))
+                        GameImage(name: fruit.asset)
+                            .frame(width: step == .blend ? 26 : 38, height: step == .blend ? 26 : 38)
+                            .offset(x: xOff, y: yOff)
+                    }
+                }
+                .frame(width: 300 * s, height: 240 * s)
+                .offset(x: ox + 50 * s, y: 140 * s)
+                .rotationEffect(.degrees(step == .blend ? bladeAngle : 0))
+            }
 
-            // Blender Front Glass
-            GameImage(name: "d_blender_front")
-                .frame(width: 170, height: 210)
-
-            // Blender Base
+            // 4. Blender Base & Motor Body + Pitcher Handle (540 x 772 native at 0,0)
             GameImage(name: "d_blender_base")
-                .frame(width: 190, height: 80)
-                .offset(y: 110)
+                .frame(width: 540 * s, height: 772 * s)
+                .offset(x: ox, y: 0)
 
-            // Blender Lid
+            // 5. Rotary Blade: native centered at collarX (200 - 44 = 156), y = 330
+            GameImage(name: "blender_blade")
+                .frame(width: 88 * s, height: 88 * s)
+                .rotationEffect(.degrees(bladeAngle))
+                .offset(x: ox + 156 * s, y: 330 * s)
+
+            // 6. Jar Front Glass: centered on collarX (200 - 242 = -42)
+            GameImage(name: "d_blender_front")
+                .frame(width: 484 * s, height: 512 * s)
+                .offset(x: ox - 42 * s, y: 35 * s)
+
+            // 7. Blender Lid on Top: seated tightly on jar rim (-42, -15)
             GameImage(name: "d_blender_lid")
-                .frame(width: 140, height: 35)
-                .offset(y: -95)
+                .frame(width: 484 * s, height: 140 * s)
+                .offset(x: ox - 42 * s, y: -15 * s)
 
-            // Button
-            GameImage(name: "d_blender_button")
-                .frame(width: 36, height: 36)
-                .offset(y: 105)
+            // 8. Power Button on Motor Base: centered at collarX (200 - 40 = 160), y = 520
+            Button(action: {
+                if (!addedFruits.isEmpty || hasMilk) && step != .blend {
+                    startBlending()
+                }
+            }) {
+                GameImage(name: "d_blender_button")
+                    .frame(width: 80 * s, height: 82 * s)
+                    .scaleEffect(step == .blend ? 0.90 : 1.0)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .offset(x: ox + 160 * s, y: 520 * s)
         }
+        .frame(width: 211, height: 285)
+        .offset(x: step == .blend ? CGFloat.random(in: -2...2) : 0)
     }
 
     // MARK: - Glass Cup Serving Stage

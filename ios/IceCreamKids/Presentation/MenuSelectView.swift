@@ -60,7 +60,7 @@ struct MenuSelectView: View {
                 .padding(.top, 8)
 
                 // Main Content: Left = Animal Customer, Right = 5 Dessert Recipe Stations
-                HStack(spacing: 12) {
+                HStack(spacing: 10) {
                     // Left: Animal customer with Order Bubble & Animated Canvas
                     VStack(spacing: 6) {
                         OrderBubbleView(
@@ -74,17 +74,17 @@ struct MenuSelectView: View {
                         AnimalCustomerView(
                             animalType: appState.selectedAnimal,
                             mood: .waiting,
-                            size: 125
+                            size: 118
                         )
 
                         Text(appState.selectedAnimal.rawValue)
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                            .font(.system(size: 13, weight: .bold, design: .rounded))
                             .foregroundColor(.textDark)
                     }
-                    .frame(width: 170)
+                    .frame(width: 145)
 
                     // Right: 5 Dessert Stations with Official Machine Drawables
-                    HStack(spacing: 8) {
+                    HStack(spacing: 6) {
                         StationCard(
                             drawableName: "select_machine_ss",
                             title: "Soft Serve",
@@ -131,8 +131,8 @@ struct MenuSelectView: View {
                         )
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 10)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 8)
             }
         }
         .onAppear {
@@ -168,6 +168,7 @@ struct StationCard: View {
 
                     GameImage(name: drawableName)
                         .frame(width: 72, height: 72)
+                        .offset(x: drawableName == "select_machine_d" ? -2 : 0)
                 }
 
                 Spacer()
