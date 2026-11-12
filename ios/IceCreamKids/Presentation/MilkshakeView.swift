@@ -166,26 +166,40 @@ struct MilkshakeView: View {
         }
     }
 
+    private func fruitOffsetX(for index: Int) -> CGFloat {
+        switch index {
+        case 0: return -22
+        case 1: return 22
+        case 2: return -12
+        default: return 14
+        }
+    }
+
+    private func fruitOffsetY(for index: Int) -> CGFloat {
+        switch index {
+        case 0: return -14
+        case 1: return -6
+        case 2: return 14
+        default: return 10
+        }
+    }
+
+    @ViewBuilder
     private var blenderFruitsView: some View {
         let s: CGFloat = 195.0 / 540.0
         let ox: CGFloat = 15.2
-        return Group {
-            // 3. Floating Fruit Pieces (centered on collar, swirling inside pitcher)
-            if !addedFruits.isEmpty {
-                ZStack {
-                    ForEach(Array(addedFruits.enumerated()), id: \.offset) { index, fruit in
-                        let xOff: CGFloat = index == 0 ? -22 : (index == 1 ? 22 : (index == 2 ? -12 : 14))
-                        let yOff: CGFloat = index == 0 ? -14 : (index == 1 ? -6 : (index == 2 ? 14 : 10))
-                        let fruitSize: CGFloat = step == .blend ? 26 : 38
-                        GameImage(name: fruit.asset)
-                            .frame(width: fruitSize, height: fruitSize)
-                            .offset(x: xOff, y: yOff)
-                    }
+        if !addedFruits.isEmpty {
+            ZStack {
+                ForEach(0..<addedFruits.count, id: \.self) { index in
+                    let size: CGFloat = step == .blend ? 26 : 38
+                    GameImage(name: addedFruits[index].asset)
+                        .frame(width: size, height: size)
+                        .offset(x: fruitOffsetX(for: index), y: fruitOffsetY(for: index))
                 }
-                .frame(width: 300 * s, height: 240 * s)
-                .offset(x: ox + 50 * s, y: 140 * s)
-                .rotationEffect(.degrees(step == .blend ? bladeAngle : 0))
             }
+            .frame(width: 300 * s, height: 240 * s)
+            .offset(x: ox + 50 * s, y: 140 * s)
+            .rotationEffect(.degrees(step == .blend ? bladeAngle : 0))
         }
     }
 
