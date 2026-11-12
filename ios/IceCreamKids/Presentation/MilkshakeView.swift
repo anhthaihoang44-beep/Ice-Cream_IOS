@@ -148,11 +148,10 @@ struct MilkshakeView: View {
     }
 
     // MARK: - Blender Stage (Pixel-Perfect 100% Collar-Locked Native Composite)
-    private var blenderStageView: some View {
-        let s: CGFloat = 195.0 / 540.0 // Native scale = 0.36111
-        let ox: CGFloat = 15.2 // Centers collar and jar on screen
-
-        return ZStack(alignment: .topLeading) {
+    private var blenderJarBackView: some View {
+        let s: CGFloat = 195.0 / 540.0
+        let ox: CGFloat = 15.2
+        return Group {
             // 1. Jar Back Glass: centered on collar (200 - 234 = -34)
             GameImage(name: "d_blender_back")
                 .frame(width: 468 * s, height: 496 * s)
@@ -164,15 +163,22 @@ struct MilkshakeView: View {
                     .frame(width: 468 * s, height: 496 * s)
                     .offset(x: ox - 34 * s, y: 42 * s)
             }
+        }
+    }
 
+    private var blenderFruitsView: some View {
+        let s: CGFloat = 195.0 / 540.0
+        let ox: CGFloat = 15.2
+        return Group {
             // 3. Floating Fruit Pieces (centered on collar, swirling inside pitcher)
             if !addedFruits.isEmpty {
                 ZStack {
                     ForEach(Array(addedFruits.enumerated()), id: \.offset) { index, fruit in
                         let xOff: CGFloat = index == 0 ? -22 : (index == 1 ? 22 : (index == 2 ? -12 : 14))
                         let yOff: CGFloat = index == 0 ? -14 : (index == 1 ? -6 : (index == 2 ? 14 : 10))
+                        let fruitSize: CGFloat = step == .blend ? 26 : 38
                         GameImage(name: fruit.asset)
-                            .frame(width: step == .blend ? 26 : 38, height: step == .blend ? 26 : 38)
+                            .frame(width: fruitSize, height: fruitSize)
                             .offset(x: xOff, y: yOff)
                     }
                 }
@@ -180,7 +186,13 @@ struct MilkshakeView: View {
                 .offset(x: ox + 50 * s, y: 140 * s)
                 .rotationEffect(.degrees(step == .blend ? bladeAngle : 0))
             }
+        }
+    }
 
+    private var blenderMachineBodyView: some View {
+        let s: CGFloat = 195.0 / 540.0
+        let ox: CGFloat = 15.2
+        return Group {
             // 4. Blender Base & Motor Body + Pitcher Handle (540 x 772 native at 0,0)
             GameImage(name: "d_blender_base")
                 .frame(width: 540 * s, height: 772 * s)
@@ -205,7 +217,7 @@ struct MilkshakeView: View {
             // 8. Power Button on Motor Base: centered at collarX (200 - 40 = 160), y = 520
             Button(action: {
                 if (!addedFruits.isEmpty || hasMilk) && step != .blend {
-                    startBlending()
+                    startBlendingAction()
                 }
             }) {
                 GameImage(name: "d_blender_button")
@@ -214,6 +226,14 @@ struct MilkshakeView: View {
             }
             .buttonStyle(PlainButtonStyle())
             .offset(x: ox + 160 * s, y: 520 * s)
+        }
+    }
+
+    private var blenderStageView: some View {
+        ZStack(alignment: .topLeading) {
+            blenderJarBackView
+            blenderFruitsView
+            blenderMachineBodyView
         }
         .frame(width: 211, height: 285)
         .offset(x: step == .blend ? CGFloat.random(in: -2...2) : 0)
