@@ -1,0 +1,58 @@
+name: Build iOS IPA
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        run: sudo xcode-select -s /Applications/Xcode_15.4.app/Contents/Developer || sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+
+      - name: Compile IceCreamKids iOS Executable with swiftc
+        run: |
+          mkdir -p build/IceCreamKids.app
+          SDK_PATH=$(xcrun --sdk iphoneos --show-sdk-path)
+          echo "Using SDK at: $SDK_PATH"
+          SWIFT_FILES=$(find ios/IceCreamKids -name "*.swift" | sort | tr '\n' ' ')
+          echo "Compiling Swift files: $SWIFT_FILES"
+          swiftc -v -target arm64-apple-ios16.0 -sdk "$SDK_PATH" \
+            -framework SwiftUI \
+            -framework UIKit \
+            -framework AVFoundation \
+            -framework Foundation \
+            -framework Combine \
+            $SWIFT_FILES \
+            -o build/IceCreamKids.app/IceCreamKids \
+            -emit-executable
+          ls -lh build/IceCreamKids.app/IceCreamKids
+          file build/IceCreamKids.app/IceCreamKids
+
+      - name: Package Real IPA
+        run: |
+          mkdir -p Payload/IceCreamKids.app
+          cp build/IceCreamKids.app/IceCreamKids Payload/IceCreamKids.app/
+          cp ios/IceCreamKids/Info.plist Payload/IceCreamKids.app/Info.plist
+          echo "APPL????" > Payload/IceCreamKids.app/PkgInfo
+          if [ -d "ios/IceCreamKids/Resources/Assets" ]; then
+            cp -R ios/IceCreamKids/Resources/Assets/* Payload/IceCreamKids.app/
+          fi
+          if [ -d "ios/IceCreamKids/Resources/Audio" ]; then
+            cp -R ios/IceCreamKids/Resources/Audio/* Payload/IceCreamKids.app/
+          fi
+          zip -qr IceCreamKids_iOS.ipa Payload
+          ls -lh IceCreamKids_iOS.ipa
+
+      - name: Upload IceCreamKids iOS IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: IceCreamKids_iOS_Release
+          path: IceCreamKids_iOS.ipa
+          retention-days: 14
