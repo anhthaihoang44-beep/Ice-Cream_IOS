@@ -35,13 +35,16 @@ struct GameImage: View {
 
     var body: some View {
         if let uiImg = loadImage(named: name) {
-            let img = Image(uiImage: uiImg)
-                .resizable()
-                .aspectRatio(contentMode: contentMode)
             if let tint = tint {
-                img.renderingMode(.template).foregroundColor(tint)
+                Image(uiImage: uiImg)
+                    .renderingMode(.template)
+                    .resizable()
+                    .aspectRatio(contentMode: contentMode)
+                    .foregroundColor(tint)
             } else {
-                img
+                Image(uiImage: uiImg)
+                    .resizable()
+                    .aspectRatio(contentMode: contentMode)
             }
         } else {
             // Graceful fallback for missing assets
