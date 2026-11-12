@@ -1,31 +1,41 @@
 import SwiftUI
 
 enum SoftServeFlavor: String, CaseIterable, Identifiable {
-    case vanilla = "Vanilla"
     case strawberry = "Strawberry"
     case chocolate = "Chocolate"
-    case mintKiwi = "Mint Kiwi"
+    case vanilla = "Vanilla"
+    case kiwi = "Mint Kiwi"
     case blueberry = "Blueberry"
 
     var id: String { rawValue }
 
     var bottomAsset: String {
         switch self {
-        case .vanilla: return "swirl_vanilla_bottom"
         case .strawberry: return "swirl_strawberry_bottom"
-        case .chocolate: return "swirl_chocolate_bottom"
-        case .mintKiwi: return "swirl_kiwi_bottom"
+        case .chocolate: return "swirl_choco_bottom"
+        case .vanilla: return "swirl_vanilla_bottom"
+        case .kiwi: return "swirl_kiwi_bottom"
         case .blueberry: return "swirl_blueberry_bottom"
         }
     }
 
     var topAsset: String {
         switch self {
-        case .vanilla: return "swirl_vanilla_top"
         case .strawberry: return "swirl_strawberry_top"
-        case .chocolate: return "swirl_chocolate_top"
-        case .mintKiwi: return "swirl_kiwi_top"
+        case .chocolate: return "swirl_choco_top"
+        case .vanilla: return "swirl_vanilla_top"
+        case .kiwi: return "swirl_kiwi_top"
         case .blueberry: return "swirl_blueberry_top"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .strawberry: return Color(hex: 0xFFFF6492)
+        case .chocolate: return Color(hex: 0xFF6D4C41)
+        case .vanilla: return Color(hex: 0xFFFFF9C4)
+        case .kiwi: return Color(hex: 0xFF81C784)
+        case .blueberry: return Color(hex: 0xFF7E57C2)
         }
     }
 }
@@ -33,32 +43,32 @@ enum SoftServeFlavor: String, CaseIterable, Identifiable {
 struct SoftServeView: View {
     @ObservedObject var appState: AppState
 
-    @State private var currentStep: Int = 1 // 1: Cone, 2: Swirl, 3: Topping, 4: Eat
-    @State private var selectedCone: String = "cone_waffle"
+    @State private var step: Int = 1 // 1: Choose Cone, 2: Pull Lever & Dispense, 3: Decorate Toppings, 4: Feed Pet
     @State private var bottomFlavor: SoftServeFlavor = .strawberry
     @State private var topFlavor: SoftServeFlavor = .vanilla
     @State private var isDispensing: Bool = false
     @State private var dispensedAmount: CGFloat = 0 // 0 to 1
-    @State private var hasSprinkles: Bool = false
-    @State private var hasCherry: Bool = false
+    @State private var selectedToppings: Set<String> = []
     @State private var bitesTaken: Int = 0
     @State private var showCelebration: Bool = false
+    @State private var animalMood: AnimalMood = .waiting
 
     var stepTitle: String {
-        switch currentStep {
-        case 1: return "🍦 1. CHOOSE YOUR CONE OR CUP! 🍦"
-        case 2: return "🍦 2. HOLD LEVER TO DISPENSE SWIRL ICE CREAM! 🍦"
-        case 3: return "✨ 3. CHOOSE DELICIOUS TOPPINGS TO DECORATE! ✨"
-        default: return "🎉 DELICIOUS SOFT SERVE IS READY! 🎉"
+        switch step {
+        case 1: return "🍦 STEP 1: CHOOSE CONE & FLAVORS! 🍦"
+        case 2: return "🍦 STEP 2: HOLD LEVER TO DISPENSE SWIRL! 🍦"
+        case 3: return "✨ STEP 3: DECORATE DELICIOUS TOPPINGS! ✨"
+        default: return "😋 STEP 4: FEED YOUR PET! 🐶"
         }
     }
 
     var body: some View {
         ZStack {
-            // Background
+            // Kitchen Background
             GameImage(name: "bg_kitchen", contentMode: .fill)
                 .ignoresSafeArea()
 
+            // Counter table
             VStack {
                 Spacer()
                 GameImage(name: "table_counter", contentMode: .fill)
@@ -67,39 +77,39 @@ struct SoftServeView: View {
             .ignoresSafeArea()
 
             VStack(spacing: 6) {
-                // Top Header
+                // Top Header Bar
                 GameTopBar(
                     title: stepTitle,
                     onBack: { appState.navigate(to: .menu) },
                     onRestart: { resetState() }
                 )
 
-                // Main Stage
+                // Main Stage Row
                 HStack(spacing: 20) {
-                    // Left: Soft Serve Machine or Assembled Cone
+                    // Left: Soft Serve Machine Stage
                     ZStack {
-                        if currentStep == 2 {
+                        if step <= 2 {
                             machineStageView
                         } else {
-                            coneStageView
+                            coneServingStageView
                         }
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
 
                     // Right: Control Panels
                     VStack {
-                        switch currentStep {
+                        switch step {
                         case 1:
-                            coneControls
+                            flavorControlsView
                         case 2:
-                            dispenseControls
+                            dispenseControlsView
                         case 3:
-                            toppingControls
+                            toppingControlsView
                         default:
-                            eatControls
+                            feedPetControlsView
                         }
                     }
-                    .frame(width: 320)
+                    .frame(width: 310)
                     .padding(14)
                     .background(Color.white.opacity(0.96))
                     .clipShape(RoundedRectangle(cornerRadius: 22))
@@ -114,103 +124,160 @@ struct SoftServeView: View {
         }
     }
 
-    // MARK: - Stages
+    // MARK: - Machine Stage
     private var machineStageView: some View {
         ZStack {
-            // Soft Serve Machine
+            // Soft Serve Machine Base
             GameImage(name: "select_machine_ss")
-                .frame(width: 220, height: 260)
+                .frame(width: 210, height: 250)
 
             // Lever
-            GameImage(name: isDispensing ? "ss_handle_pull" : "ss_handle_idle")
-                .frame(width: 70, height: 70)
-                .offset(x: 55, y: -20)
+            GameImage(name: "ss_lever")
+                .frame(width: 50, height: 75)
+                .rotationEffect(.degrees(isDispensing ? 25 : 0))
+                .offset(x: 55, y: -25)
                 .onTapGesture {
-                    pullLeverOnce()
+                    pullLeverAction()
                 }
 
-            // Swirl building up below nozzle
-            if dispensedAmount > 0.1 {
-                VStack(spacing: -15) {
+            // Dispensing Swirl Cone below nozzle
+            if step == 2 {
+                VStack(spacing: -18) {
                     if dispensedAmount > 0.6 {
                         GameImage(name: topFlavor.topAsset)
-                            .frame(width: 90, height: 80)
+                            .frame(width: 85, height: 75)
+                            .transition(.scale)
                     }
-                    GameImage(name: bottomFlavor.bottomAsset)
-                        .frame(width: 105, height: 80)
-                    GameImage(name: selectedCone)
-                        .frame(width: 80, height: 95)
+                    if dispensedAmount > 0.2 {
+                        GameImage(name: bottomFlavor.bottomAsset)
+                            .frame(width: 100, height: 75)
+                            .transition(.scale)
+                    }
+                    GameImage(name: "ss_cone")
+                        .frame(width: 75, height: 90)
                 }
-                .offset(y: 70)
+                .offset(y: 75)
             }
         }
     }
 
-    private var coneStageView: some View {
-        ZStack {
-            if bitesTaken < 3 {
-                VStack(spacing: -24) {
-                    // Top Swirl
-                    if currentStep >= 3 {
+    // MARK: - Serving Stage
+    private var coneServingStageView: some View {
+        HStack(spacing: 20) {
+            // Customer Animal
+            VStack {
+                AnimalCustomerView(animalType: appState.selectedAnimal, mood: animalMood, size: 130)
+                Text(appState.selectedAnimal.rawValue)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundColor(.textDark)
+            }
+
+            // Finished Ice Cream Cone
+            ZStack {
+                VStack(spacing: -18) {
+                    if bitesTaken < 3 {
                         ZStack {
                             GameImage(name: topFlavor.topAsset)
-                                .frame(width: 120, height: 110)
+                                .frame(width: 95, height: 85)
 
-                            if hasSprinkles {
+                            // Toppings on top
+                            if selectedToppings.contains("ss_bit_sprinkles") {
                                 GameImage(name: "ss_bit_sprinkles")
-                                    .frame(width: 90, height: 50)
-                                    .offset(y: -10)
+                                    .frame(width: 75, height: 45)
+                                    .offset(y: -5)
+                            }
+                            if selectedToppings.contains("ss_bit_cherry") {
+                                GameImage(name: "ss_bit_cherry")
+                                    .frame(width: 32, height: 32)
+                                    .offset(y: -30)
+                            }
+                            if selectedToppings.contains("ss_bit_strawberry") {
+                                GameImage(name: "ss_bit_strawberry")
+                                    .frame(width: 30, height: 30)
+                                    .offset(x: 15, y: -20)
+                            }
+                            if selectedToppings.contains("ss_bit_blueberry") {
+                                GameImage(name: "ss_bit_blueberry")
+                                    .frame(width: 28, height: 28)
+                                    .offset(x: -15, y: -18)
                             }
                         }
                     }
 
-                    // Bottom Swirl
-                    if currentStep >= 3 {
+                    if bitesTaken < 2 {
                         GameImage(name: bottomFlavor.bottomAsset)
-                            .frame(width: 140, height: 105)
+                            .frame(width: 110, height: 85)
                     }
 
-                    // Cone Base
-                    GameImage(name: selectedCone)
-                        .frame(width: 100, height: 120)
+                    GameImage(name: "ss_cone")
+                        .frame(width: 80, height: 95)
                 }
-                .offset(y: 20)
             }
-        }
-        .onTapGesture {
-            if currentStep == 4 && bitesTaken < 3 {
-                takeBite()
+            .onTapGesture {
+                if step == 4 && bitesTaken < 3 {
+                    feedBite()
+                }
             }
         }
     }
 
     // MARK: - Controls
-    private var coneControls: some View {
-        VStack(spacing: 12) {
-            Text("✨ 1. Choose Cone or Cup:")
-                .font(.system(size: 14, weight: .heavy, design: .rounded))
+    private var flavorControlsView: some View {
+        VStack(spacing: 8) {
+            Text("🍓 Bottom Swirl Flavor:")
+                .font(.system(size: 12, weight: .heavy, design: .rounded))
                 .foregroundColor(.pinkStrawberry)
 
-            HStack(spacing: 8) {
-                ConeButton(name: "Waffle", asset: "cone_waffle", isSelected: selectedCone == "cone_waffle") {
-                    selectedCone = "cone_waffle"
-                }
-                ConeButton(name: "Rainbow", asset: "cone_cup", isSelected: selectedCone == "cone_cup") {
-                    selectedCone = "cone_cup"
-                }
-                ConeButton(name: "Bear Bowl", asset: "cone_bear", isSelected: selectedCone == "cone_bear") {
-                    selectedCone = "cone_bear"
+            HStack(spacing: 6) {
+                ForEach(SoftServeFlavor.allCases) { f in
+                    Button(action: {
+                        AudioManager.shared.playSFX("sfx_click")
+                        bottomFlavor = f
+                    }) {
+                        Text(f.rawValue)
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(bottomFlavor == f ? .white : .textDark)
+                            .frame(width: 54, height: 32)
+                            .background(bottomFlavor == f ? f.color : Color.white)
+                            .clipShape(Capsule())
+                            .overlay(Capsule().stroke(f.color, lineWidth: 1.5))
+                    }
                 }
             }
 
+            Spacer().frame(height: 4)
+
+            Text("🍦 Top Swirl Flavor:")
+                .font(.system(size: 12, weight: .heavy, design: .rounded))
+                .foregroundColor(.pinkStrawberry)
+
+            HStack(spacing: 6) {
+                ForEach(SoftServeFlavor.allCases) { f in
+                    Button(action: {
+                        AudioManager.shared.playSFX("sfx_click")
+                        topFlavor = f
+                    }) {
+                        Text(f.rawValue)
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(topFlavor == f ? .white : .textDark)
+                            .frame(width: 54, height: 32)
+                            .background(topFlavor == f ? f.color : Color.white)
+                            .clipShape(Capsule())
+                            .overlay(Capsule().stroke(f.color, lineWidth: 1.5))
+                    }
+                }
+            }
+
+            Spacer().frame(height: 8)
+
             Button(action: {
                 AudioManager.shared.playSFX("sfx_pop")
-                withAnimation { currentStep = 2 }
+                withAnimation { step = 2 }
             }) {
-                Text("NEXT: DISPENSE SWIRL 👉")
+                Text("NEXT: DISPENSE ▶")
                     .font(.system(size: 13, weight: .heavy, design: .rounded))
                     .frame(maxWidth: .infinity)
-                    .frame(height: 42)
+                    .frame(height: 40)
                     .background(Color.pinkStrawberry)
                     .foregroundColor(.white)
                     .clipShape(Capsule())
@@ -218,126 +285,107 @@ struct SoftServeView: View {
         }
     }
 
-    private var dispenseControls: some View {
-        VStack(spacing: 8) {
-            Text("🍦 Choose Flavors & Dispense:")
-                .font(.system(size: 13, weight: .bold, design: .rounded))
+    private var dispenseControlsView: some View {
+        VStack(spacing: 12) {
+            Text("🍦 Pull Lever To Dispense")
+                .font(.system(size: 14, weight: .heavy, design: .rounded))
                 .foregroundColor(.pinkStrawberry)
 
-            // Bottom flavor selector
-            Text("Layer 1 (Bottom):")
-                .font(.system(size: 10, weight: .bold))
+            Text("Tap the button or lever to pour delicious swirls into cone!")
+                .font(.system(size: 12, weight: .medium, design: .rounded))
                 .foregroundColor(.textMuted)
+                .multilineTextAlignment(.center)
 
-            HStack(spacing: 4) {
-                ForEach(SoftServeFlavor.allCases) { f in
-                    Button(action: { bottomFlavor = f }) {
-                        Text(f.rawValue)
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(bottomFlavor == f ? .white : .textDark)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 4)
-                            .background(bottomFlavor == f ? Color.pinkStrawberry : Color.white)
-                            .clipShape(Capsule())
-                    }
-                }
-            }
-
-            Text("Layer 2 (Top):")
-                .font(.system(size: 10, weight: .bold))
-                .foregroundColor(.textMuted)
-
-            HStack(spacing: 4) {
-                ForEach(SoftServeFlavor.allCases) { f in
-                    Button(action: { topFlavor = f }) {
-                        Text(f.rawValue)
-                            .font(.system(size: 9, weight: .bold))
-                            .foregroundColor(topFlavor == f ? .white : .textDark)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 4)
-                            .background(topFlavor == f ? Color.pinkStrawberry : Color.white)
-                            .clipShape(Capsule())
-                    }
-                }
-            }
-
-            Spacer().frame(height: 4)
-
-            // Hold lever button
             Button(action: {
-                pullLeverOnce()
+                pullLeverAction()
             }) {
-                Text(dispensedAmount < 1.0 ? "👇 TAP LEVER TO DISPENSE (\(Int(dispensedAmount * 100))%)" : "✓ FULL! NEXT TO DECORATE")
-                    .font(.system(size: 12, weight: .heavy, design: .rounded))
+                Text(isDispensing ? "🌪️ SWIRLING..." : "PULL LEVER 🔽")
+                    .font(.system(size: 14, weight: .heavy, design: .rounded))
                     .frame(maxWidth: .infinity)
-                    .frame(height: 38)
-                    .background(dispensedAmount >= 1.0 ? Color.mintGreen : Color.pinkStrawberry)
+                    .frame(height: 44)
+                    .background(Color.pinkStrawberry)
                     .foregroundColor(.white)
                     .clipShape(Capsule())
+            }
+
+            if dispensedAmount >= 1.0 {
+                Button(action: {
+                    AudioManager.shared.playSFX("sfx_pop")
+                    withAnimation { step = 3 }
+                }) {
+                    Text("DECORATE CONE 👉")
+                        .font(.system(size: 13, weight: .heavy, design: .rounded))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 40)
+                        .background(Color.mintGreen)
+                        .foregroundColor(.white)
+                        .clipShape(Capsule())
+                }
             }
         }
     }
 
-    private var toppingControls: some View {
-        VStack(spacing: 10) {
-            Text("🍒 Sweet Toppings:")
-                .font(.system(size: 14, weight: .heavy, design: .rounded))
+    private var toppingControlsView: some View {
+        VStack(spacing: 8) {
+            Text("🍒 Choose Toppings:")
+                .font(.system(size: 13, weight: .heavy, design: .rounded))
                 .foregroundColor(.pinkStrawberry)
 
-            HStack(spacing: 12) {
+            let toppings = [
+                ("ss_bit_sprinkles", "🌈 Sprinkles"),
+                ("ss_bit_cherry", "🍒 Cherry"),
+                ("ss_bit_strawberry", "🍓 Strawberry"),
+                ("ss_bit_blueberry", "🫐 Blueberry")
+            ]
+
+            ForEach(toppings, id: \.0) { asset, label in
                 Button(action: {
                     AudioManager.shared.playSFX("sfx_sprinkle")
-                    hasSprinkles.toggle()
-                }) {
-                    VStack(spacing: 4) {
-                        Text("🌈")
-                            .font(.system(size: 26))
-                        Text("Sprinkles")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.textDark)
+                    if selectedToppings.contains(asset) {
+                        selectedToppings.remove(asset)
+                    } else {
+                        selectedToppings.insert(asset)
                     }
-                    .frame(width: 80, height: 60)
-                    .background(hasSprinkles ? Color.pinkLight.opacity(0.3) : Color.white)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.pinkStrawberry, lineWidth: 1.5))
-                }
-
-                Button(action: {
-                    AudioManager.shared.playSFX("sfx_pop")
-                    hasCherry.toggle()
                 }) {
-                    VStack(spacing: 4) {
-                        Text("🍒")
-                            .font(.system(size: 26))
-                        Text("Cherry")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.textDark)
+                    HStack {
+                        GameImage(name: asset)
+                            .frame(width: 24, height: 24)
+                        Text(label)
+                            .font(.system(size: 12, weight: .bold))
+                        Spacer()
+                        if selectedToppings.contains(asset) {
+                            Text("✓").bold().foregroundColor(.mintDark)
+                        }
                     }
-                    .frame(width: 80, height: 60)
-                    .background(hasCherry ? Color.pinkLight.opacity(0.3) : Color.white)
+                    .padding(.horizontal, 12)
+                    .frame(height: 34)
+                    .background(selectedToppings.contains(asset) ? Color.mintGreen.opacity(0.3) : Color.white)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.pinkStrawberry, lineWidth: 1.5))
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color.pinkLight.opacity(0.5), lineWidth: 1.5))
                 }
             }
 
             Button(action: {
                 AudioManager.shared.playSFX("sfx_pop")
-                withAnimation { currentStep = 4 }
+                withAnimation {
+                    step = 4
+                    animalMood = .waiting
+                }
             }) {
-                Text("DONE & EAT ICE CREAM! 😋")
+                Text("SERVE TO PET! 😋")
                     .font(.system(size: 13, weight: .heavy, design: .rounded))
                     .frame(maxWidth: .infinity)
-                    .frame(height: 40)
-                    .background(Color.mintGreen)
+                    .frame(height: 38)
+                    .background(Color.pinkStrawberry)
                     .foregroundColor(.white)
                     .clipShape(Capsule())
             }
         }
     }
 
-    private var eatControls: some View {
+    private var feedPetControlsView: some View {
         VStack(spacing: 8) {
-            Text(bitesTaken < 3 ? "😋 Tap the ice cream to take yummy bites!" : "🎉 You finished the soft serve! (+20 Coins)")
+            Text(bitesTaken < 3 ? "👉 Tap the cone to feed your pet!" : "🎉 Yummy! Your pet loved it! (+25 Coins)")
                 .font(.system(size: 12, weight: .bold, design: .rounded))
                 .foregroundColor(.textDark)
                 .multilineTextAlignment(.center)
@@ -346,11 +394,11 @@ struct SoftServeView: View {
                 Button(action: {
                     resetState()
                 }) {
-                    Text("Make Another Soft Serve 🍦")
-                        .font(.system(size: 12, weight: .heavy, design: .rounded))
+                    Text("Make Another Cone 🔄")
+                        .font(.system(size: 13, weight: .heavy, design: .rounded))
                         .frame(maxWidth: .infinity)
-                        .frame(height: 38)
-                        .background(Color.pinkStrawberry)
+                        .frame(height: 40)
+                        .background(Color.mintGreen)
                         .foregroundColor(.white)
                         .clipShape(Capsule())
                 }
@@ -358,62 +406,45 @@ struct SoftServeView: View {
         }
     }
 
-    private func pullLeverOnce() {
+    private func pullLeverAction() {
+        guard dispensedAmount < 1.0 else { return }
         AudioManager.shared.playSFX("sfx_pour")
         isDispensing = true
-        withAnimation {
-            dispensedAmount = min(1.0, dispensedAmount + 0.35)
+
+        withAnimation(.easeInOut(duration: 0.8)) {
+            dispensedAmount = min(1.0, dispensedAmount + 0.5)
         }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
             isDispensing = false
-            if dispensedAmount >= 1.0 {
-                withAnimation { currentStep = 3 }
-            }
         }
     }
 
-    private func takeBite() {
+    private func feedBite() {
         AudioManager.shared.playSFX("sfx_yummy")
+        animalMood = .eating
         withAnimation {
             bitesTaken += 1
         }
-        if bitesTaken >= 3 {
-            AudioManager.shared.playSFX("sfx_celebrate")
-            appState.addCoins(20)
-            showCelebration = true
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+            if bitesTaken >= 3 {
+                animalMood = .happy
+                AudioManager.shared.playSFX("sfx_celebrate")
+                appState.addCoins(25)
+                showCelebration = true
+            } else {
+                animalMood = .waiting
+            }
         }
     }
 
     private func resetState() {
-        currentStep = 1
+        step = 1
         dispensedAmount = 0
-        hasSprinkles = false
-        hasCherry = false
+        selectedToppings = []
         bitesTaken = 0
         showCelebration = false
+        animalMood = .waiting
     }
 }
-
-struct ConeButton: View {
-    let name: String
-    let asset: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                GameImage(name: asset)
-                    .frame(width: 48, height: 50)
-                Text(name)
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(.textDark)
-            }
-            .frame(width: 85, height: 80)
-            .background(isSelected ? Color.pinkLight.opacity(0.3) : Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            .overlay(RoundedRectangle(cornerRadius: 12).stroke(isSelected ? Color.pinkStrawberry : Color.gray.opacity(0.3), lineWidth: 2))
-        }
-    }
-}
-

@@ -2,21 +2,27 @@ import SwiftUI
 
 struct MenuSelectView: View {
     @ObservedObject var appState: AppState
+    @State private var cardScale: CGFloat = 1.0
 
     var body: some View {
         ZStack {
-            // Background
-            Color(hex: 0xFFFFFBE6)
+            // Official Kitchen Background matching Android
+            GameImage(name: "bg_kitchen", contentMode: .fill)
+                .ignoresSafeArea()
+
+            // Soft white wash for readable buttons
+            Color.white.opacity(0.35)
                 .ignoresSafeArea()
 
             VStack(spacing: 8) {
-                // Top Header Bar
+                // Header: Back button + Title + Animal Customer Switcher
                 HStack(spacing: 12) {
                     Button(action: {
+                        AudioManager.shared.playSFX("sfx_click")
                         appState.navigate(to: .home)
                     }) {
                         GameImage(name: "btn_back")
-                            .frame(width: 44, height: 44)
+                            .frame(width: 46, height: 46)
                     }
 
                     Spacer()
@@ -27,16 +33,16 @@ struct MenuSelectView: View {
 
                     Spacer()
 
-                    // Animal Selector Pills
-                    HStack(spacing: 6) {
+                    // Animal Switcher Pills
+                    HStack(spacing: 5) {
                         ForEach(AnimalType.allCases) { animal in
                             Button(action: {
                                 AudioManager.shared.playSFX("sfx_click")
                                 appState.selectedAnimal = animal
                             }) {
                                 Text(animal.emoji)
-                                    .font(.system(size: 20))
-                                    .frame(width: 38, height: 38)
+                                    .font(.system(size: 18))
+                                    .frame(width: 36, height: 36)
                                     .background(appState.selectedAnimal == animal ? Color.pinkStrawberry : Color.white)
                                     .clipShape(Circle())
                                     .overlay(
@@ -45,86 +51,104 @@ struct MenuSelectView: View {
                                             lineWidth: 2
                                         )
                                     )
+                                    .shadow(color: Color.black.opacity(0.06), radius: 2)
                             }
                         }
                     }
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 10)
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
 
-                // Main Content: Left Customer + Right 5 Dessert Cards
-                HStack(spacing: 14) {
-                    // Left Column: Animal Customer & Bubble
+                // Main Content: Left = Animal Customer, Right = 5 Dessert Recipe Stations
+                HStack(spacing: 12) {
+                    // Left: Animal customer with Order Bubble & Animated Canvas
                     VStack(spacing: 6) {
-                        // Order Speech Bubble
-                        HStack(spacing: 6) {
-                            Text(appState.selectedAnimal.orderEmoji)
-                                .font(.system(size: 24))
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text("I'm hungry!")
-                                    .font(.system(size: 11, weight: .bold, design: .rounded))
-                                    .foregroundColor(.textDark)
-                                Text("Let's cook a yummy treat!")
-                                    .font(.system(size: 10, weight: .medium, design: .rounded))
-                                    .foregroundColor(.textMuted)
-                            }
-                        }
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 8)
-                        .background(Color.white)
-                        .clipShape(RoundedRectangle(cornerRadius: 14))
-                        .overlay(RoundedRectangle(cornerRadius: 14).stroke(Color.pinkStrawberry, lineWidth: 2))
-                        .shadow(color: Color.black.opacity(0.06), radius: 3, x: 0, y: 2)
+                        OrderBubbleView(
+                            desiredDessertEmoji: appState.selectedAnimal.orderEmoji,
+                            message: "I'm hungry! Let's cook a yummy treat!"
+                        )
 
-                        Spacer().frame(height: 6)
+                        Spacer().frame(height: 4)
 
-                        // Animal Avatar
-                        Text(appState.selectedAnimal.emoji)
-                            .font(.system(size: 68))
-                            .frame(width: 100, height: 100)
-                            .background(Color.white.opacity(0.85))
-                            .clipShape(Circle())
-                            .overlay(Circle().stroke(Color.pinkLight.opacity(0.4), lineWidth: 3))
+                        // Animated Vector Chibi Animal matching Android Canvas!
+                        AnimalCustomerView(
+                            animalType: appState.selectedAnimal,
+                            mood: .waiting,
+                            size: 125
+                        )
 
                         Text(appState.selectedAnimal.rawValue)
                             .font(.system(size: 14, weight: .bold, design: .rounded))
                             .foregroundColor(.textDark)
                     }
-                    .frame(width: 160)
+                    .frame(width: 170)
 
-                    // Right: 5 Recipe Cards
-                    HStack(spacing: 10) {
-                        DessertCard(
-                            dessert: .softServe,
+                    // Right: 5 Dessert Stations with Official Machine Drawables
+                    HStack(spacing: 8) {
+                        StationCard(
+                            drawableName: "select_machine_ss",
+                            title: "Soft Serve",
+                            subtitle: "Pull & swirl",
+                            color: .pinkStrawberry,
+                            scale: cardScale,
                             action: { appState.navigate(to: .softServe) }
                         )
-                        DessertCard(
-                            dessert: .scoopCup,
+
+                        StationCard(
+                            drawableName: "select_machine_icb",
+                            title: "Scoop Cup",
+                            subtitle: "4 yummy scoops",
+                            color: Color(hex: 0xFFFFB74D),
+                            scale: 1.0,
                             action: { appState.navigate(to: .gelato) }
                         )
-                        DessertCard(
-                            dessert: .popsicle,
+
+                        StationCard(
+                            drawableName: "select_machine_fjc",
+                            title: "Popsicle",
+                            subtitle: "Freeze fruit pop",
+                            color: .mintGreen,
+                            scale: 1.0,
                             action: { appState.navigate(to: .popsicle) }
                         )
-                        DessertCard(
-                            dessert: .sweetIce,
+
+                        StationCard(
+                            drawableName: "select_machine_si",
+                            title: "Sweet Ice",
+                            subtitle: "Tap & pop dish",
+                            color: Color(hex: 0xFF4FC3F7),
+                            scale: 1.0,
                             action: { appState.navigate(to: .sweetIce) }
                         )
-                        DessertCard(
-                            dessert: .milkshake,
+
+                        StationCard(
+                            drawableName: "select_machine_d",
+                            title: "Milkshake",
+                            subtitle: "Fruit smoothie",
+                            color: .yellowMango,
+                            scale: 1.0,
                             action: { appState.navigate(to: .milkshake) }
                         )
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.bottom, 12)
+                .padding(.bottom, 10)
+            }
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                cardScale = 1.03
             }
         }
     }
 }
 
-struct DessertCard: View {
-    let dessert: DessertType
+struct StationCard: View {
+    let drawableName: String
+    let title: String
+    let subtitle: String
+    let color: Color
+    var scale: CGFloat = 1.0
     let action: () -> Void
 
     var body: some View {
@@ -132,41 +156,41 @@ struct DessertCard: View {
             AudioManager.shared.playSFX("sfx_pop")
             action()
         }) {
-            VStack(spacing: 8) {
-                Spacer().frame(height: 10)
+            VStack(spacing: 6) {
+                Spacer().frame(height: 8)
 
                 // Circle with official machine artwork
                 ZStack {
                     Circle()
-                        .stroke(dessert.themeColor.opacity(0.8), lineWidth: 3)
+                        .stroke(color.opacity(0.85), lineWidth: 3)
                         .background(Circle().fill(Color.white))
-                        .frame(width: 86, height: 86)
+                        .frame(width: 82, height: 82)
 
-                    GameImage(name: dessert.machineAsset)
-                        .frame(width: 76, height: 76)
+                    GameImage(name: drawableName)
+                        .frame(width: 72, height: 72)
                 }
 
                 Spacer()
 
-                Text(dessert.rawValue)
-                    .font(.system(size: 15, weight: .heavy, design: .rounded))
+                Text(title)
+                    .font(.system(size: 14, weight: .heavy, design: .rounded))
                     .foregroundColor(.textDark)
 
-                Text(dessert.subtitle)
-                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                Text(subtitle)
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
                     .foregroundColor(.textMuted)
 
-                Spacer().frame(height: 12)
+                Spacer().frame(height: 10)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 22))
+            .clipShape(RoundedRectangle(cornerRadius: 20))
             .overlay(
-                RoundedRectangle(cornerRadius: 22)
-                    .stroke(dessert.themeColor.opacity(0.85), lineWidth: 3)
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(color.opacity(0.85), lineWidth: 2.5)
             )
-            .shadow(color: dessert.themeColor.opacity(0.2), radius: 6, x: 0, y: 3)
+            .shadow(color: color.opacity(0.2), radius: 5, x: 0, y: 3)
+            .scaleEffect(scale)
         }
     }
 }
-

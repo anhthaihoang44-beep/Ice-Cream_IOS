@@ -52,16 +52,42 @@ struct CandyAlbumView: View {
 
     var body: some View {
         ZStack {
-            // Background
-            Color(hex: 0xFFFCE4EC)
-                .ignoresSafeArea()
+            // Candy Land Gradient Background matching Android CandyAlbumScreen.kt
+            LinearGradient(
+                colors: [Color(hex: 0xFFBA68C8), Color(hex: 0xFFF48FB1), Color(hex: 0xFF80DEEA)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
             VStack(spacing: 8) {
-                // Top Header
-                GameTopBar(
-                    title: "📷 BABY'S SWEET MEMORY ALBUM 🍨",
-                    onBack: { appState.navigate(to: .home) }
-                )
+                // Header Bar
+                HStack {
+                    Button(action: {
+                        AudioManager.shared.playSFX("sfx_click")
+                        appState.navigate(to: .home)
+                    }) {
+                        GameImage(name: "btn_back")
+                            .frame(width: 44, height: 44)
+                    }
+
+                    Spacer()
+
+                    Text("📸 BABY'S MEMORY ALBUM")
+                        .font(.system(size: 16, weight: .heavy, design: .rounded))
+                        .foregroundColor(.pinkStrawberry)
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 8)
+                        .background(Color.white.opacity(0.95))
+                        .clipShape(Capsule())
+                        .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+
+                    Spacer()
+
+                    Spacer().frame(width: 44)
+                }
+                .padding(.horizontal, 16)
+                .padding(.top, 8)
 
                 // 5 Polaroid Cards Row
                 HStack(spacing: 12) {
@@ -78,7 +104,7 @@ struct CandyAlbumView: View {
                                         .clipShape(RoundedRectangle(cornerRadius: 12))
 
                                     GameImage(name: card.artworkAsset)
-                                        .frame(width: 90, height: 90)
+                                        .frame(width: 85, height: 85)
                                         .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
                                 }
 
@@ -119,7 +145,7 @@ struct CandyAlbumView: View {
             // Detail Polaroid Pop-up Dialog
             if let card = selectedCard {
                 ZStack {
-                    Color.black.opacity(0.4)
+                    Color.black.opacity(0.45)
                         .ignoresSafeArea()
                         .onTapGesture { selectedCard = nil }
 
@@ -156,4 +182,3 @@ struct CandyAlbumView: View {
         }
     }
 }
-

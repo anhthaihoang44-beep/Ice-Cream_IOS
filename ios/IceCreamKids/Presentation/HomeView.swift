@@ -6,12 +6,16 @@ struct HomeView: View {
 
     var body: some View {
         ZStack {
-            // Background
-            GameImage(name: "bg_home", contentMode: .fill)
+            // Official Candy Land High-Res Background
+            GameImage(name: "bg_candyland", contentMode: .fill)
+                .ignoresSafeArea()
+
+            // Soft pastel overlay for clarity matching Android
+            Color.white.opacity(0.25)
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Top Header Row
+                // Top Header Row: Coin Badge + 100% Free Edition Badge
                 HStack {
                     CoinBadge(coins: appState.coins)
                     Spacer()
@@ -23,65 +27,64 @@ struct HomeView: View {
                 Spacer()
 
                 // Center Column: App Logo, Title, Play Button, Album Button
-                VStack(spacing: 10) {
+                VStack(spacing: 8) {
                     GameImage(name: "app_logo")
-                        .frame(width: 90, height: 90)
+                        .frame(width: 105, height: 105)
                         .clipShape(Circle())
                         .overlay(Circle().stroke(Color.white, lineWidth: 3.5))
-                        .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 3)
+                        .shadow(color: Color.black.opacity(0.15), radius: 6, x: 0, y: 3)
+
+                    Spacer().frame(height: 6)
 
                     Text("🍨 ICE CREAM KIDS COOKING 🍦")
-                        .font(.system(size: 26, weight: .heavy, design: .rounded))
+                        .font(.system(size: 32, weight: .heavy, design: .rounded))
                         .foregroundColor(.pinkStrawberry)
-                        .shadow(color: Color.white, radius: 2, x: 0, y: 1)
+                        .shadow(color: Color.white.opacity(0.8), radius: 2, x: 0, y: 1)
 
                     Text("Fun Ice Cream Cooking Game for Kids")
-                        .font(.system(size: 14, weight: .bold, design: .rounded))
-                        .foregroundColor(.textDark.opacity(0.8))
+                        .font(.system(size: 16, weight: .bold, design: .rounded))
+                        .foregroundColor(.textDark.opacity(0.75))
 
-                    Spacer().frame(height: 12)
+                    Spacer().frame(height: 18)
 
-                    // Big Play Now Button
+                    // Big Pulsing Play Button
                     Button(action: {
                         AudioManager.shared.playSFX("sfx_pop")
                         appState.navigate(to: .menu)
                     }) {
-                        HStack(spacing: 12) {
+                        HStack(spacing: 10) {
                             Image(systemName: "play.fill")
-                                .font(.system(size: 22, weight: .bold))
+                                .font(.system(size: 26, weight: .bold))
                                 .foregroundColor(.white)
-                            Text("PLAY NOW")
-                                .font(.system(size: 22, weight: .heavy, design: .rounded))
+                            Text("PLAY")
+                                .font(.system(size: 24, weight: .heavy, design: .rounded))
                                 .foregroundColor(.white)
                         }
-                        .frame(width: 240, height: 60)
-                        .background(
-                            LinearGradient(
-                                colors: [Color(hex: 0xFFFF5252), Color.pinkStrawberry],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
+                        .frame(width: 260, height: 72)
+                        .background(Color.pinkStrawberry)
                         .clipShape(Capsule())
-                        .shadow(color: Color.pinkStrawberry.opacity(0.4), radius: 8, x: 0, y: 4)
+                        .shadow(color: Color.pinkStrawberry.opacity(0.45), radius: 10, x: 0, y: 5)
                         .scaleEffect(pulseScale)
                     }
 
-                    // Baby's Album Button
+                    Spacer().frame(height: 8)
+
+                    // Album Button
                     Button(action: {
                         AudioManager.shared.playSFX("sfx_click")
                         appState.navigate(to: .album)
                     }) {
                         HStack(spacing: 8) {
                             Image(systemName: "photo.on.rectangle.angled")
-                                .font(.system(size: 16, weight: .bold))
-                            Text("Baby's Album")
-                                .font(.system(size: 15, weight: .bold, design: .rounded))
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.textDark)
+                            Text("ALBUM")
+                                .font(.system(size: 18, weight: .bold, design: .rounded))
+                                .foregroundColor(.textDark)
                         }
-                        .foregroundColor(Color(hex: 0xFF00796B))
-                        .frame(width: 200, height: 44)
-                        .background(Color.mintGreen.opacity(0.9))
-                        .clipShape(Capsule())
+                        .frame(width: 220, height: 52)
+                        .background(Color.mintGreen)
+                        .clipShape(RoundedRectangle(cornerRadius: 24))
                         .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
                     }
                 }
@@ -91,10 +94,9 @@ struct HomeView: View {
         }
         .onAppear {
             AudioManager.shared.playBGM()
-            withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
-                pulseScale = 1.05
+            withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
+                pulseScale = 1.08
             }
         }
     }
 }
-

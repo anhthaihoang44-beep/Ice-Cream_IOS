@@ -14,10 +14,10 @@ enum AppScreen {
 
 enum AnimalType: String, CaseIterable, Identifiable {
     case panda = "Panda"
-    case fox = "Fox"
-    case kitty = "Kitty"
-    case bunny = "Bunny"
+    case fox = "Little Fox"
     case puppy = "Puppy"
+    case kitty = "Cute Kitty"
+    case bunny = "Little Bunny"
 
     var id: String { rawValue }
 
