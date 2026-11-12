@@ -241,7 +241,7 @@ struct SweetIceView: View {
             }) {
                 Text("FILL ALL SLOTS 🧃")
                     .font(.system(size: 12, weight: .bold))
-                    .frame(maxWidth: .infinity, height: 36)
+                    .frame(maxWidth: .infinity).frame(height: 36)
                     .background(Color.blueSky)
                     .foregroundColor(.white)
                     .clipShape(Capsule())
@@ -254,7 +254,7 @@ struct SweetIceView: View {
                 }) {
                     Text("FREEZE IN FREEZER ❄️")
                         .font(.system(size: 13, weight: .heavy, design: .rounded))
-                        .frame(maxWidth: .infinity, height: 40)
+                        .frame(maxWidth: .infinity).frame(height: 40)
                         .background(Color.mintGreen)
                         .foregroundColor(.white)
                         .clipShape(Capsule())
@@ -291,7 +291,7 @@ struct SweetIceView: View {
             }) {
                 Text("TAP MALLET 🔨 (\(poppedCount)/6)")
                     .font(.system(size: 13, weight: .heavy, design: .rounded))
-                    .frame(maxWidth: .infinity, height: 42)
+                    .frame(maxWidth: .infinity).frame(height: 42)
                     .background(Color.pinkStrawberry)
                     .foregroundColor(.white)
                     .clipShape(Capsule())
@@ -312,7 +312,7 @@ struct SweetIceView: View {
                 }) {
                     Text("Make Another Dish 🍧")
                         .font(.system(size: 13, weight: .heavy, design: .rounded))
-                        .frame(maxWidth: .infinity, height: 40)
+                        .frame(maxWidth: .infinity).frame(height: 40)
                         .background(Color.mintGreen)
                         .foregroundColor(.white)
                         .clipShape(Capsule())

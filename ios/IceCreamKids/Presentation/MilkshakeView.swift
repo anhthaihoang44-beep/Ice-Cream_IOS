@@ -285,7 +285,7 @@ struct MilkshakeView: View {
             }) {
                 Text(hasMilk ? "✓ 2. FRESH MILK ADDED" : "🥛 2. POUR FRESH MILK")
                     .font(.system(size: 12, weight: .bold))
-                    .frame(maxWidth: .infinity, height: 36)
+                    .frame(maxWidth: .infinity).frame(height: 36)
                     .background(hasMilk ? Color.mintGreen : Color.blueSky)
                     .foregroundColor(.white)
                     .clipShape(Capsule())
@@ -297,7 +297,7 @@ struct MilkshakeView: View {
                 }) {
                     Text("3. START BLENDING ▶")
                         .font(.system(size: 13, weight: .heavy, design: .rounded))
-                        .frame(maxWidth: .infinity, height: 40)
+                        .frame(maxWidth: .infinity).frame(height: 40)
                         .background(Color.pinkStrawberry)
                         .foregroundColor(.white)
                         .clipShape(Capsule())
@@ -330,7 +330,7 @@ struct MilkshakeView: View {
             }) {
                 Text("POUR INTO GLASS CUP 🥤")
                     .font(.system(size: 13, weight: .heavy, design: .rounded))
-                    .frame(maxWidth: .infinity, height: 42)
+                    .frame(maxWidth: .infinity).frame(height: 42)
                     .background(Color.pinkStrawberry)
                     .foregroundColor(.white)
                     .clipShape(Capsule())
@@ -367,7 +367,7 @@ struct MilkshakeView: View {
             }) {
                 Text(hasWhippedCream ? "✓ Whipped Cream" : "🍦 Add Whipped Cream")
                     .font(.system(size: 11, weight: .bold))
-                    .frame(maxWidth: .infinity, height: 34)
+                    .frame(maxWidth: .infinity).frame(height: 34)
                     .background(hasWhippedCream ? Color.mintGreen : Color(hex: 0xFFFFF9C4))
                     .foregroundColor(.textDark)
                     .clipShape(Capsule())
@@ -380,7 +380,7 @@ struct MilkshakeView: View {
                 }) {
                     Text(hasSprinkles ? "✓ Rainbow Sprinkles" : "🌈 Add Sprinkles")
                         .font(.system(size: 11, weight: .bold))
-                        .frame(maxWidth: .infinity, height: 34)
+                        .frame(maxWidth: .infinity).frame(height: 34)
                         .background(hasSprinkles ? Color.mintGreen : Color(hex: 0xFFFCE4EC))
                         .foregroundColor(.textDark)
                         .clipShape(Capsule())
@@ -396,7 +396,7 @@ struct MilkshakeView: View {
             }) {
                 Text("SERVE TO PET! 😋")
                     .font(.system(size: 13, weight: .heavy, design: .rounded))
-                    .frame(maxWidth: .infinity, height: 38)
+                    .frame(maxWidth: .infinity).frame(height: 38)
                     .background(Color.pinkStrawberry)
                     .foregroundColor(.white)
                     .clipShape(Capsule())
@@ -417,7 +417,7 @@ struct MilkshakeView: View {
                 }) {
                     Text("Make Another Smoothie 🔄")
                         .font(.system(size: 13, weight: .heavy, design: .rounded))
-                        .frame(maxWidth: .infinity, height: 40)
+                        .frame(maxWidth: .infinity).frame(height: 40)
                         .background(Color.mintGreen)
                         .foregroundColor(.white)
                         .clipShape(Capsule())
